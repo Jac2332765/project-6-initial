@@ -15,8 +15,7 @@ import java.util.List;
 @RestController
 public class AggregatorController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AggregatorController.class);
-
+    private static final Logger logger = LoggerFactory.getLogger(AggregatorController.class.getName());
     private AggregatorService service;
 
     public AggregatorController(AggregatorService service) {
@@ -26,7 +25,7 @@ public class AggregatorController {
     @GetMapping("/")
     public List<Entry> helloWorld() {
 
-        List<Entry> entries = new ArrayList<>();
+        List <Entry> entries = new ArrayList<>();
         entries.add(service.getDefinitionFor("hello"));
         entries.add(service.getDefinitionFor("world"));
         return entries;
@@ -34,48 +33,67 @@ public class AggregatorController {
 
     @GetMapping("/getDefinitionFor/{word}")
     public Entry getDefinitionFor(@PathVariable String word) {
-        return this.service.getDefinitionFor(word);
+
+        StopWatch sw = new StopWatch();
+        sw.start();
+        Entry entry = service.getDefinitionFor(word);
+        sw.stop();
+
+        long nanoSeconds = sw.getLastTaskTimeNanos();
+        String message = new StringBuilder().append("Retrieved entry for [")
+                .append(word)
+                .append("] in ")
+                .append(nanoSeconds / 1000000.0)
+                .append("ms")
+                .toString();
+
+        logger.info(message);
+
+        return entry;
     }
 
     @GetMapping("/getWordsThatContainSuccessiveLettersAndStartsWith/{chars}")
     public List<Entry> getWordsThatContainSuccessiveLettersAndStartsWith(@PathVariable String chars) {
 
         StopWatch sw = new StopWatch();
-
         sw.start();
         List<Entry> entries = service.getWordsThatContainSuccessiveLettersAndStartsWith(chars);
         sw.stop();
 
         long nanoSeconds = sw.getLastTaskTimeNanos();
-        String message = new StringBuilder("Retrieved entry for words containing successive letters and starting with [")
+        String message = new StringBuilder().append("Retrieved entries for words that contain")
+                .append(" consecutive double letters and starts with [")
                 .append(chars)
-                .append("] in ")
+                .append("] containing ")
+                .append(entries.size())
+                .append(" entries in ")
                 .append(nanoSeconds / 1000000.0)
                 .append("ms")
                 .toString();
+
         logger.info(message);
 
         return entries;
     }
 
-    @GetMapping("/getWordsThatContainSuccessiveLettersAndContains/{chars}")
-    public List<Entry> getWordsThatContainSuccessiveLettersAndContains(@PathVariable String chars) {
+    @GetMapping("/getAllPalindromes")
+    public List<Entry> getAllPalindromes() {
 
         StopWatch sw = new StopWatch();
-
         sw.start();
-        List<Entry> entries = service.getWordsThatContainSuccessiveLettersAndContains(chars);
+        List<Entry> entries = service.getAllPalindromes();
         sw.stop();
 
         long nanoSeconds = sw.getLastTaskTimeNanos();
-        String message = new StringBuilder("Retrieved entry for words containing successive letters and contains [")
-                .append(chars)
-                .append("] in ")
+        String message = new StringBuilder().append("Retrieved all palindromes")
+                .append(" in ")
                 .append(nanoSeconds / 1000000.0)
                 .append("ms")
                 .toString();
+
         logger.info(message);
 
         return entries;
     }
+
 }
